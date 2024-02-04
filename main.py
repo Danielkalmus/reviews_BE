@@ -1,24 +1,17 @@
-import pandas as pd
-from flask import Flask, request, jsonify
+from flask import Flask, render_template
+from flask_paginate import Pagination, get_page_args
 import sqlite3
-import streamlit as st
-
-
+import pandas as pd
 
 app = Flask(__name__)
-
-#merged_df = pd.read_csv('merged_file.csv', dtype={'review': str, 'title': str, 'description': str})
-#merged_df.reset_index(drop=True, inplace=True)
-
-@app.route('/get_similar_results_by_word', methods=['GET'])
-def find_similar_word(word):
-    word = request.args.get('word')
+app.template_folder = ''
+users = list(range(100))
 
 
-def load_from_sql_server(review_value):
+def get_reviews(offset=0, per_page=10):
     conn = sqlite3.connect('your_database.db')
     # merged_df.to_sql('reviews', conn, if_exists='replace', index=False)
-    query = f"SELECT title, description FROM reviews WHERE review = '{review_value}' LIMIT 3"
+    query = f"SELECT title, description FROM reviews LIMIT {per_page} OFFSET {offset}"
     result_df = pd.read_sql_query(query, conn)
 
     result_list = result_df.to_dict(orient='records')
@@ -28,13 +21,20 @@ def load_from_sql_server(review_value):
     conn.close()
     return result_list
 
-
-@app.route('/get_result_by_review_number', methods=['GET'])
-def get_reviews():
-    # Get the review value from the UI (assuming it's sent as a query parameter)
-    review_value = request.args.get('review')
-    result_df = load_from_sql_server(review_value)
-    return result_df
+@app.route('/')
+def index():
+    page, per_page, offset = get_page_args(page_parameter='page',
+                                           per_page_parameter='per_page')
+    total = len(users)
+    pagination_users = get_reviews(offset=offset, per_page=per_page)
+    pagination = Pagination(page=page, per_page=per_page, total=total,
+                            css_framework='bootstrap4')
+    return render_template('index.html',
+                           users=pagination_users,
+                           page=page,
+                           per_page=per_page,
+                           pagination=pagination,
+                           )
 
 
 if __name__ == '__main__':
