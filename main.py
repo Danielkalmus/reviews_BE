@@ -5,7 +5,6 @@ import pandas as pd
 
 app = Flask(__name__)
 app.template_folder = ''
-users = list(range(100))
 
 
 def get_reviews(offset=0, per_page=10):
@@ -21,11 +20,22 @@ def get_reviews(offset=0, per_page=10):
     conn.close()
     return result_list
 
+
+def get_total_reviews_number():
+    conn = sqlite3.connect('your_database.db')
+    query = "SELECT COUNT (*) FROM reviews"
+    total_reviews_number = pd.read_sql_query(query, conn)
+    count_value = total_reviews_number.values[0][0].item()
+    print(count_value)
+    return count_value
+
+
+
 @app.route('/')
 def index():
     page, per_page, offset = get_page_args(page_parameter='page',
                                            per_page_parameter='per_page')
-    total = len(users)
+    total = get_total_reviews_number()
     pagination_users = get_reviews(offset=offset, per_page=per_page)
     pagination = Pagination(page=page, per_page=per_page, total=total,
                             css_framework='bootstrap4')
