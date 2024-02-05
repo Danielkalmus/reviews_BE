@@ -2,9 +2,12 @@ from flask import Flask, render_template, request, send_file
 from flask_paginate import Pagination, get_page_args
 import sqlite3
 import pandas as pd
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 app.template_folder = ''
+
 
 def get_reviews(sentiment = "all", offset=0, per_page=10):
     query_addition = ""
@@ -33,12 +36,11 @@ def export_to_excel(sentiment = "all", offset=0, per_page=10):
     result_df.to_excel('reviews.xlsx')
     return send_file('reviews.xlsx', mimetype='application/vnd.ms-excel')
 
-
+2
 def get_reviews_as_dict(sentiment = "all", offset=0, per_page=10):
     result_df = get_reviews(sentiment, offset, per_page)
-    result_list = result_df.to_dict(orient='records')
-    print(f'result_list = {result_list}')
-
+    result_df_dict = result_df.to_dict(orient='records')
+    return result_df_dict
 
 def get_total_reviews_number(sentiment = "all"):
     conn = sqlite3.connect('your_database.db')
@@ -63,16 +65,17 @@ def index():
     page, per_page, offset = get_page_args(page_parameter='page',
                                            per_page_parameter='per_page')
     total = get_total_reviews_number(sentiment = sentiment)
-    pagination_reviews = get_reviews(sentiment = sentiment, offset=offset, per_page=per_page)
+    pagination_reviews = get_reviews_as_dict(sentiment = sentiment, offset=offset, per_page=per_page)
     pagination = Pagination(page=page, per_page=per_page, total=total,
                             css_framework='bootstrap4', href="?page={0}&sentiment=" + str(sentiment))
     return render_template('index.html',
-                           reviews=pagination_reviews,
+                           users=pagination_reviews,
                            page=page,
                            per_page=per_page,
                            pagination=pagination,
+                           sentiment = sentiment
                            )
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8080)
