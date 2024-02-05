@@ -9,10 +9,31 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css">
   </head>
   <body>
+  <style>
+      .blue-button {
+  background-color: #007bff;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.blue-button:hover {
+  background-color: #0069d9;
+}
+  </style>
     <div class="container">
       {{ pagination.links }}
-      <div class="table-responsive">
-        <table class="table table-hover">
+        <button class="blue-button" onclick="window.location.href='/export_to_excel?page={{page}}&sentiment={{sentiment}}'">
+            Download to excel
+        </button>
+  <table class="table table-hover">
           <thead>
             <tr>
               <th>#</th>
@@ -20,10 +41,10 @@
             </tr>
           </thead>
           <tbody>
-            {% for review in reviews %}
+            {% for user in users %}
             <tr>
               <td>{{ loop.index + (page - 1) * per_page }}</td>
-              <td>{{ review }}</td>
+              <td>{{ user }}</td>
             </tr>
             {% endfor %}
           </tbody>
